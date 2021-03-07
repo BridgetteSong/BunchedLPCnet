@@ -93,10 +93,10 @@ void write_audio(LPCNetEncState *st, const short *pcm, const int *noise, FILE *f
     /* Excitation out. */
     data[4*i+3] = e;
     /* Simulate error on excitation. */
-    /*
+    
     e += noise[k*FRAME_SIZE+i];
     e = IMIN(255, IMAX(0, e));
-    */
+    
     
     RNN_MOVE(&st->sig_mem[1], &st->sig_mem[0], LPC_ORDER-1);
     st->sig_mem[0] = p + ulaw2lin(e);
@@ -232,7 +232,7 @@ int main(int argc, char **argv) {
       last_silent = silent;
     }
     if (count*FRAME_SIZE_5MS>=10000000 && one_pass_completed) break;
-    /*
+    
     if (training && ++gain_change_count > 2821) {
       float tmp;
       speech_gain = pow(10., (-20+(rand()%40))/20.);
@@ -243,7 +243,7 @@ int main(int argc, char **argv) {
       tmp = (float)rand()/RAND_MAX;
       noise_std = 10*tmp*tmp;
     }
-    */
+    
     biquad(x, mem_hp_x, x, b_hp, a_hp, FRAME_SIZE);
     biquad(x, mem_resp_x, x, b_sig, a_sig, FRAME_SIZE);
     preemphasis(x, &mem_preemph, x, PREEMPHASIS, FRAME_SIZE);
@@ -259,11 +259,11 @@ int main(int argc, char **argv) {
     compute_frame_features(st, x);
 
     RNN_COPY(&pcmbuf[st->pcount*FRAME_SIZE], pcm, FRAME_SIZE);
-    /*
+    
     if (fpcm) {
         compute_noise(&noisebuf[st->pcount*FRAME_SIZE], noise_std);
     }
-    */
+    
     st->pcount++;
     /* Running on groups of 4 frames. */
     if (st->pcount == 4) {
