@@ -1,12 +1,12 @@
 # Bunched LPCNet (implementation with Pytorch)
 
-This repository provides ***UNOFFICIAL Bunched LPCnet*** implementations with ***Pytorch***.
+This repository provides ***UNOFFICIAL Bunched LPCNet*** implementations with ***Pytorch***.
 
-- Source of the paper: <https://arxiv.org/abs/2008.04574>
+- Source of the paper: [Bunched LPCNet: Vocoder for Low-cost Neural Text-To-Speech Systems](https://arxiv.org/abs/2008.04574)
 
 ## Introduction
 
-1. For BunchedLPCNet, we set (S=2, B=(8, 0)). It can achieve 1.5X than the original LPCNet.
+1. For BunchedLPCNet, we set (S=2, B=(8, 0)). It can achieve about 1.5X faster than the original LPCNet.
 2. It is based on the open source [LPCNet](https://github.com/mozilla/LPCNet/commit/bffdcee95b4303167a34007ea22c8d304ca204da).
 3. not support '***Encoder Mode***' and '***Decoder Mode***'
 
@@ -23,7 +23,7 @@ This repository provides ***UNOFFICIAL Bunched LPCnet*** implementations with **
     - `make`
 5. test
     - prepare your feature file, confirm your "**feature.shape[-1] = 20**"
-    - When it is from ***Tacotron***:
+    - When it is from ***[Tacotron](https://github.com/BridgetteSong/ExpressiveTacotron)***:
         - `python test_vocoder feature.npy`
     - When it is from a wav file:
         - `sox a.wav -b 16 -c 1 -r 16k -r -raw -> test_input.s16`
