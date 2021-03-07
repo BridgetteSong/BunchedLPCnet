@@ -1,0 +1,4 @@
+src/dump_data-ceps_codebooks.o: src/ceps_codebooks.c \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

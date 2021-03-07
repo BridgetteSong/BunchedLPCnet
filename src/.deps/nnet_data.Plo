@@ -1,0 +1,12 @@
+src/nnet_data.lo: src/nnet_data.c /usr/include/stdc-predef.h config.h \
+ src/nnet.h src/../src/nnet_data.h src/../src/nnet.h
+
+/usr/include/stdc-predef.h:
+
+config.h:
+
+src/nnet.h:
+
+src/../src/nnet_data.h:
+
+src/../src/nnet.h:
