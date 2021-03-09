@@ -6,7 +6,7 @@ This repository provides ***UNOFFICIAL Bunched LPCNet*** implementations with **
 
 ## Introduction
 
-1. For BunchedLPCNet, we set (S=2, B=(8, 0)). It can achieve about 1.5X faster than the original LPCNet.
+1. For BunchedLPCNet, we set (S=2, B=(8, 0)). It can achieve about **1.5X** faster than the original LPCNet.
 2. It is based on the open source [LPCNet](https://github.com/mozilla/LPCNet/commit/bffdcee95b4303167a34007ea22c8d304ca204da).
 3. not support '***Encoder Mode***' and '***Decoder Mode***'
 
@@ -26,12 +26,13 @@ This repository provides ***UNOFFICIAL Bunched LPCNet*** implementations with **
     - When it is from ***[Tacotron](https://github.com/BridgetteSong/ExpressiveTacotron)***:
         - `python test_vocoder feature.npy`
     - When it is from a wav file:
-        - `sox a.wav -b 16 -c 1 -r 16k -r -raw -> test_input.s16`
+        - `import numpy as np`
+        - `import soundfile as sf`
+        - `sox a.wav -b 16 -c 1 -r 16k -t raw -> test_input.s16`
         - `./dump_data -test test_input.s16 test_features.f32`
-        - `feature = np.fromfile(test_features.f32, dtype=np.float32).reshape(-1, 55)`
-        - `feature = np.concatenate((feature[:,:18], feature[:, 18:20]), axis=-1)`
-        - `np.save('feature.npy', feature)`
-        - `python test_vocoder feature.npy`
+        - `./lpcnet_demo -synthesis test_features.f32 test_features.pcm`
+        - `a = np.fromfile('out.pcm', dtype=np.int16)`
+        - `sf.write("out.wav", a, 16000, "PCM_16")`
    
 ## Reference
 
