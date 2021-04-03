@@ -122,14 +122,14 @@ def train(args, hparams):
     parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
     print('Trainable Parameters: %.3fM' % parameters)
     print("r is ", hparams.n_samples_per_step)
-    optimizer = optim.Adam(model.parameters(), lr=hparams.learning_rate, amsgrad=True)
+    optimizer = optim.Adam(model.parameters(), lr=float(hparams.learning_rate), amsgrad=True)
 
     epoc_offset = 0
     if args.checkpoint is not None:
         model, optimizer, epoc_offset = load_checkpoint(args.checkpoint, model, optimizer)
         print("load checkpoint from ", args.checkpoint)
 
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=(1 - hparams.lr_decay))
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=(1 - float(hparams.lr_decay)))
     criteon   = nn.CrossEntropyLoss().cuda()
     aux_criteon = MultiResolutionSTFTLoss().cuda()
 
