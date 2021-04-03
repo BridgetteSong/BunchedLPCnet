@@ -13,7 +13,7 @@ This repository provides ***UNOFFICIAL Bunched LPCNet*** implementations with **
 ## TODO
 
 - [x] Preparing python padding data in the **data_uitls.py** may be not right, but final result is not affected.
-- [x] Using higher ulaw(10) and splitting coarse(5) and fine(5) bits result in bad quality. Maybe there are some problems and need further experiments.
+- [x] Using higher ulaw(10) and splitting coarse(5) and fine(5) bits result in bad quality. Maybe there are some problems and needs further experiments.
 - [ ] Some **click sounds** maybe occur occasionally in the generated wav.
 - [ ] Using continuous distribution([Gaussian distribution](https://ieeexplore.ieee.org/document/9053337)) needs to be modeled instead of discrete softmax distribution.
 - [ ] [Multi-band](https://arxiv.org/abs/2005.05551) mode needs to be supported.
