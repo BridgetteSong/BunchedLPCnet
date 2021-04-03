@@ -4,7 +4,7 @@ import os
 import numpy as np
 import torch
 from torch import nn
-from hparams import create_hparams
+from hparams import HParam
 from lpcnet_bunched import MDense, LPCNetModelBunch
 
 
@@ -378,7 +378,7 @@ def dump_lpcnet(chekpoint, hparams):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--checkpoint', '-c', type=str, default=None, help='checkpoint')
-    parser.add_argument('--hparams', type=str, required=False, help='comma separated name=value pairs')
+    parser.add_argument('--hparams', type=str, default="config.yaml")
     args = parser.parse_args()
-    hparams = create_hparams()
+    hparams = HParam(args.hparams)
     dump_lpcnet(args.checkpoint, hparams)

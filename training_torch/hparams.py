@@ -1,52 +1,75 @@
-import tensorflow as tf
+import os
+import yaml
+import re
 
 
-def create_hparams(hparams_string=None, verbose=False):
-    """Create model hyperparameters. Parse nondefault from given string."""
+def load_hparam_str(hp_str):
+    path = "temp-restore.yaml"
+    with open(path, "w") as f:
+        f.write(hp_str)
+    ret = HParam(path)
+    os.remove(path)
+    return ret
 
-    hparams = tf.contrib.training.HParams(
-        ################################
-        # Experiment Parameters        #
-        ################################
-        epochs=120,
-        frame_size=160,
-        bfcc_band=18,
-        nb_features=55, #nb_features = bfcc_band * 2 + 3 + 16,
-        nb_used_features=38, #2*bfcc_band + pitch + pitch corr
-        ulaw=8,
-        pitch_idx=36, # pitch_idx = 2 * bfcc_band
-        pitch_max_period=256, #768 for 48K, 256 for 16K
-        embedding_size=128,
-        embedding_pitch_size=74, # make (embedding_pitch_size+nb_used_features)%16==0 to accelerate  
-        dense_feature_size=128,
-        rnn_units1=384,
-        rnn_units2=16,
-        n_samples_per_step=2,
-        spartify=True,
-        teacher_forcing=1.0, 
 
-        ################################
-        # Data Parameters             #
-        ################################
-        features="../data/input.f32",
-        pcms="../data/input.u8",
-        checkpoint_path='checkpoint/outdir',
-        log_dir='checkpoint/outdir/logs',
+def load_hparam(filename):
+    stream = open(filename, "r")
+    # loader = yaml.SafeLoader
+    # loader.add_implicit_resolver(
+    #     u'tag:yaml.org,2002:float',
+    #     re.compile(u'''^(?:
+    #      [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
+    #     |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
+    #     |\\.[0-9_]+(?:[eE][-+][0-9]+)?
+    #     |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
+    #     |[-+]?\\.(?:inf|Inf|INF)
+    #     |\\.(?:nan|NaN|NAN))$''', re.X),
+    #     list(u'-+0123456789.'))
+    docs = yaml.load_all(stream, Loader=yaml.Loader)
+    hparam_dict = dict()
+    for doc in docs:
+        for k, v in doc.items():
+            hparam_dict[k] = v
+    return hparam_dict
 
-        ################################
-        # Optimization Hyperparameters #
-        ################################
-        learning_rate=1e-3,
-        lr_decay=5e-6,
-        grad_clip_thresh=1.0,
-        batch_size=64,
-    )
+def merge_dict(user, default):
+    if isinstance(user, dict) and isinstance(default, dict):
+        for k, v in default.items():
+            if k not in user:
+                user[k] = v
+            else:
+                user[k] = merge_dict(user[k], v)
+    return user
 
-    if hparams_string:
-        tf.logging.info('Parsing command line hparams: %s', hparams_string)
-        hparams.parse(hparams_string)
 
-    if verbose:
-        tf.logging.info('Final parsed hparams: %s', hparams.values())
+class Dotdict(dict):
+    """
+    a dictionary that supports dot notation
+    as well as dictionary access notation
+    usage: d = DotDict() or d = DotDict({'val1':'first'})
+    set attributes: d.val2 = 'second' or d['val2'] = 'second'
+    get attributes: d.val2 or d['val2']
+    """
 
-    return hparams
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+    def __init__(self, dct=None):
+        dct = dict() if not dct else dct
+        for key, value in dct.items():
+            if hasattr(value, "keys"):
+                value = Dotdict(value)
+            self[key] = value
+
+class HParam(Dotdict):
+    def __init__(self, file):
+        super(Dotdict, self).__init__()
+        hp_dict = load_hparam(file)
+        hp_dotdict = Dotdict(hp_dict)
+        for k, v in hp_dotdict.items():
+            setattr(self, k, v)
+
+    __getattr__ = Dotdict.__getitem__
+    __setattr__ = Dotdict.__setitem__
+    __delattr__ = Dotdict.__delitem__

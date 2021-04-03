@@ -20,8 +20,7 @@ def lin2ulaw(x):
     return u.short()
 
 def lin2bulw(x, b):
-    ws = 0.08
-    vm = ws*(2**b)
+    vm = 2**b
     vm2 = 2**(b-1)
     s1 = (-1.0 + vm)/32768.0
     s = np.sign(x)

@@ -8,14 +8,14 @@ class MDense(nn.Module):
     def __init__(self, input_features, output_features):
         super(MDense, self).__init__()
 
-        self.weight1 = nn.Parameter(torch.zeros(output_features, input_features), requires_grad=True)
+        self.weight1 = nn.Parameter(torch.randn(output_features, input_features), requires_grad=True)
         nn.init.xavier_uniform_(self.weight1, gain=torch.nn.init.calculate_gain("tanh"))
 
-        self.weight2 = nn.Parameter(torch.zeros(output_features, input_features), requires_grad=True)
+        self.weight2 = nn.Parameter(torch.randn(output_features, input_features), requires_grad=True)
         nn.init.xavier_uniform_(self.weight2, gain=torch.nn.init.calculate_gain("tanh"))
 
-        self.bias1 = nn.Parameter(torch.zeros(output_features), requires_grad=True)
-        self.bias2 = nn.Parameter(torch.zeros(output_features), requires_grad=True)
+        self.bias1 = nn.Parameter(torch.randn(output_features), requires_grad=True)
+        self.bias2 = nn.Parameter(torch.randn(output_features), requires_grad=True)
 
         self.factor1 = nn.Parameter(torch.ones(output_features), requires_grad=True)
         self.factor2 = nn.Parameter(torch.ones(output_features), requires_grad=True)
@@ -51,7 +51,7 @@ class LPCNetModelBunch(nn.Module):
         torch.nn.init.xavier_uniform_(self.feature_conv1.weight, gain=torch.nn.init.calculate_gain("tanh"))
 
         self.feature_conv2 = nn.Conv1d(self.dense_feature_size, self.dense_feature_size, kernel_size=3)
-        torch.nn.init.xavier_uniform_(self.feature_conv1.weight, gain=torch.nn.init.calculate_gain("tanh"))
+        torch.nn.init.xavier_uniform_(self.feature_conv2.weight, gain=torch.nn.init.calculate_gain("tanh"))
 
         self.feature_dense1 = nn.Linear(self.dense_feature_size, self.dense_feature_size)
         torch.nn.init.xavier_uniform_(self.feature_dense1.weight, gain=torch.nn.init.calculate_gain("tanh"))
