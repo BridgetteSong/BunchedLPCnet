@@ -80,7 +80,7 @@ class LPCNetModelBunch(nn.Module):
         :param in_data: [batch, 15*frame_size, 3] (sig, pred, exc) shared embedding
         :param features: features: [batch, 15, nb_used_features]
         :param periods: periods: [batch, 15, 1]
-        :param targets: [batch, 15*frame_size, 1]
+        :param targets: [batch, 15*frame_size]
         :return: ulaw_probs: [batch, 15*frame_size, 2**ulaw]
         """
 
@@ -137,7 +137,7 @@ class LPCNetModelBunch(nn.Module):
         else:
             pred_exc = torch.softmax(ulaw_probs[:, ::self.n_samples_per_step], dim=-1).argmax(-1)
 
-        context = torch.cat((context, self.embed_sig(pred_exc).squeeze(2)), dim=-1)
+        context = torch.cat((context, self.embed_sig(pred_exc)), dim=-1)
         ulaw_probs[:, 1::self.n_samples_per_step] = self.md_2(context)
 
         return ulaw_probs
