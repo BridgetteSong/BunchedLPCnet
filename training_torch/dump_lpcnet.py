@@ -11,6 +11,7 @@ from lpcnet_bunched import MDense, LPCNetModelBunch
 max_rnn_neurons = 1
 max_conv_inputs = 1
 max_mdense_tmp = 1
+rnn_units2 = 16
 
 
 def pk_convert_input_kernel(kernel):
@@ -196,8 +197,8 @@ def dump_mdense_layer(self, name, f, hf):
     global max_mdense_tmp
     print("printing layer " + name + " of type " + self.__class__.__name__)
     if name != "dual_fc_1":
-        weight1 = self.weight1.detach().numpy()[:, :16]
-        weight2 = self.weight2.detach().numpy()[:, :16]
+        weight1 = self.weight1.detach().numpy()[:, :rnn_units2]
+        weight2 = self.weight2.detach().numpy()[:, :rnn_units2]
         print("weight1.size: ", self.weight1.detach().numpy().shape)
     else:
         weight1 = self.weight1.detach().numpy()
@@ -312,6 +313,8 @@ def dump_lpcnet(chekpoint, hparams):
     hf.write('#ifndef RNN_DATA_H\n#define RNN_DATA_H\n\n#include "nnet.h"\n\n')
 
     embed_size = hparams.embedding_size
+    global rnn_units2
+    rnn_units2 = hparams.rnn_units2
 
     E1 = model.embed_sig.weight.detach().numpy()
     W = model.gru_a.weight_ih_l0.detach().numpy()
