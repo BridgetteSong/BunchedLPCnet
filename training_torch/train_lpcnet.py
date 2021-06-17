@@ -27,10 +27,12 @@ def prepare_logger(log_dir):
 
 def prepare_dataloaders(hparams):
     train_set = FeaturePCMLoader(hparams.features, hparams.pcms, hparams.frame_size, hparams.nb_used_features,
-                                 hparams.bfcc_band, hparams.nb_features, hparams.pitch_idx, hparams.n_samples_per_step, hparams.checkpoint_path)
+                                 hparams.bfcc_band, hparams.nb_features, hparams.pitch_idx, hparams.n_samples_per_step)
     train_loader = DataLoader(train_set,
-                              num_workers=4, shuffle=True,
-                              batch_size=hparams.batch_size, pin_memory=True,
+                              num_workers=4, 
+                              shuffle=True,
+                              batch_size=hparams.batch_size,
+                              pin_memory=True,
                               drop_last=False)
 
     validation_loader = None
@@ -40,8 +42,7 @@ def prepare_dataloaders(hparams):
 
 
 def save_checkpoint(model, optimizer, learning_rate, epoc, checkpoint_path):
-    print("\nSaving model and optimizer state at epoc {} to {}".format(
-        epoc, checkpoint_path))
+    print("\nSaving model and optimizer state at epoc {} to {}".format(epoc, checkpoint_path))
     torch.save(
         {'epoc':epoc,
          'state_dict': model.state_dict(),
@@ -56,11 +57,10 @@ def load_checkpoint(checkpoint_file, model, optimizer):
     optimizer.load_state_dict(checkpoint_dict['optimizer'])
     epoc = checkpoint_dict['epoc']
     learning_rate = checkpoint_dict["learning_rate"]
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = learning_rate
+    for param_group in optimizer.state_dict()["param_groups"]:
+        param_group["lr"] = learning_rate
 
-    print("Loaded checkpoint '{}' from epoc {}".format(
-        checkpoint_file, epoc))
+    print("Loaded checkpoint '{}' from epoc {}".format(checkpoint_file, epoc))
     return model, optimizer ,epoc
 
 
@@ -113,6 +113,25 @@ def sparse_gru_a(model, final_density, iteration, t_start, t_end):
     w = re_convert_recurrent_kernel(p)
     model.gru_a.weight_hh_l0.data = torch.from_numpy(w).cuda()
 
+def gaussian_criteon(y_hat, y, log_std_min):
+    assert y_hat.dim() == 3
+    assert y_hat.size(2) == 2
+    mean = y_hat[:, :, 0]
+    log_std = torch.clamp(y_hat[:, :, 1], min=log_std_min)
+    # TODO: replace with pytorch dist
+    negative_log_probs = 0.5 * (torch.pow((y - mean), 2) * torch.exp(-2.0 * log_std) + 2.0 * log_std + math.log(2.0 * math.pi))
+
+    return torch.mean(negative_log_probs)
+
+def sample_from_gaussian(y_hat, log_std_min, scale_factor=1.0):
+    assert y_hat.size(2) == 2
+    mean = y_hat[:, :, 0]
+    log_std = torch.clamp(y_hat[:, :, 1], min=log_std_min)
+    dist = Normal(mean, torch.exp(log_std))
+    sample = dist.sample()
+    sample = torch.clamp(sample, min=-scale_factor, max=scale_factor)
+    del dist
+    return sample
 
 def train(args, hparams):
     model = LPCNetModelBunch(hparams).cuda()
@@ -145,7 +164,6 @@ def train(args, hparams):
             start = time.perf_counter()
             target_pred = model(in_data, new_features, periods, target)
             target_pred = target_pred.permute(0, 2, 1)
-            target = target.squeeze(2)
             loss = criteon(target_pred, target)
 
             optimizer.zero_grad()
