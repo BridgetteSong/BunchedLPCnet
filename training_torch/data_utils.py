@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class FeaturePCMLoader(Dataset):
-    def __init__(self, feature_name, pcm_name, frame_size, nb_used_features, bfcc_band, nb_features, pitch_idx, n_samples_per_step, checkpoint_path):
+    def __init__(self, feature_name, pcm_name, frame_size, nb_used_features, bfcc_band, nb_features, pitch_idx, n_samples_per_step):
         self.features = feature_name
         self.pcm = pcm_name
         self.frame_size = frame_size
@@ -19,7 +19,7 @@ class FeaturePCMLoader(Dataset):
         self.pitch_idx   = pitch_idx
         self.n_samples_per_step = n_samples_per_step
         self.checkpoint_path = checkpoint_path
-        self.in_data, self.features, self.periods, self.out_exc = self.process_feature_pcm(self.features, self.pcm, self.n_samples_per_step, self.checkpoint_path)
+        self.in_data, self.features, self.periods, self.out_exc = self.process_feature_pcm(self.features, self.pcm, self.n_samples_per_step)
 
     def process_feature_pcm(self, feature_file, pcm_file, n_samples_per_step, checkpoint_path):
 
@@ -56,7 +56,7 @@ class FeaturePCMLoader(Dataset):
         sig = np.reshape(data[0::4], (nb_frames, pcm_chunk_size, 1))
         pred = np.reshape(data[1::4], (nb_frames, pcm_chunk_size, 1))
         in_exc = np.reshape(data[2::4], (nb_frames, pcm_chunk_size, 1))
-        out_exc = np.reshape(data[3::4], (nb_frames, pcm_chunk_size, 1))
+        out_exc = np.reshape(data[3::4], (nb_frames, pcm_chunk_size))
 
         features = np.reshape(features, (nb_frames, feature_chunk_size, nb_features))
         features = features[..., :nb_used_features]  # [nb_frames, 160*15, 38]
