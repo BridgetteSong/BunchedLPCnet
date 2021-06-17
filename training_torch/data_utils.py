@@ -38,8 +38,20 @@ class FeaturePCMLoader(Dataset):
         # limit to discrete number of frames
         data = data[:nb_frames * 4 * pcm_chunk_size]
         features = features[:nb_frames * feature_chunk_size * nb_features]
-
         features = np.reshape(features, (nb_frames * feature_chunk_size, nb_features))
+        
+        sig = data[0::4]
+        pred = data[1::4]
+        in_exc = data[2::4]
+        out_exc = data[3::4]
+        if self.n_samples_per_step > 1:
+            pad_in_data = np.ones([self.n_samples_per_step - 1, 3], dtype=data.dtype)
+            pad_in_data[..., 0] = pad_in_data[..., 0] * sig[0]
+            pad_in_data[..., 1] = pad_in_data[..., 1] * pred[0]
+            pad_in_data[..., 2] = pad_in_data[..., 2] * in_exc[0]
+            sig = np.concatenate([pad_in_data[:, 0], sig], axis=0)[:len(sig)]
+            pred = np.concatenate([pad_in_data[:, 1], pred], axis=0)[:len(pred)]
+            in_exc = np.concatenate([pad_in_data[:, 2], in_exc], axis=0)[:len(in_exc)]
 
         sig = np.reshape(data[0::4], (nb_frames, pcm_chunk_size, 1))
         pred = np.reshape(data[1::4], (nb_frames, pcm_chunk_size, 1))
@@ -56,26 +68,6 @@ class FeaturePCMLoader(Dataset):
 
         periods = (.1 + 50 * features[..., self.pitch_idx:self.pitch_idx+1] + 100).astype('int16')
 
-        in_data = np.concatenate([sig, pred, in_exc], axis=-1)
-        if n_samples_per_step > 1:
-            pad_in_data = np.ones([nb_frames, n_samples_per_step-1, 3], dtype=in_data.dtype)*in_exc[0,0,0]
-            in_data = np.concatenate([pad_in_data, in_data], axis=1)[:, :in_data.shape[1], :]
-
-        """
-        features = np.concatenate([features[..., :bfcc_band], features[..., -2:]], axis=2)
-        
-        # calculate statistics
-        features = features.reshape(-1, features.shape[-1])
-        scaler = StandardScaler()
-        scaler.partial_fit(features)
-        print("mean: ", scaler.mean_.astype(np.float32))
-        print("std: ", scaler.scale_.astype(np.float32))
-        stats = np.stack([scaler.mean_, scaler.scale_], axis=0)
-        np.save(os.path.join(checkpoint_path, "stats.npy"), stats.astype(np.float32), allow_pickle=False)
-        features = scaler.transform(features)
-        features = features.reshape(nb_frames, -1, features.shape[-1])
-        """
-
         del sig
         del pred
         del in_exc
@@ -84,10 +76,10 @@ class FeaturePCMLoader(Dataset):
         return in_data, features, periods, out_exc
 
     def __getitem__(self, index):
-        return torch.tensor(self.in_data[index], dtype=torch.long),\
-               torch.tensor(self.features[index], dtype=torch.float32),\
-               torch.tensor(self.periods[index], dtype=torch.long), \
-               torch.tensor(self.out_exc[index], dtype=torch.long)
+        return [torch.tensor(self.in_data[index], dtype=torch.long),
+                torch.tensor(self.features[index], dtype=torch.float32),
+                torch.tensor(self.periods[index], dtype=torch.long),
+                torch.tensor(self.out_exc[index], dtype=torch.long)]
 
     def __len__(self):
         return len(self.in_data)
